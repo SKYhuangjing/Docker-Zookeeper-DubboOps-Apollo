@@ -1,0 +1,70 @@
+version: '2'
+services:
+  apollo:
+    image: idoop/docker-apollo:latest
+    container_name: apollo
+    restart: always
+    volumes:
+      - ./logs:/opt
+# 启动前,确认对应环境的数据库已经建立，否则apollo无法启动.
+# 默认端口:portal:8070; dev:8080,8090; fat:8081,8091; uat:8082,8092; pro:8083,8093
+    environment:
+      PORTAL_DB: jdbc:mysql://apollo-db:3306/ApolloPortalDB?characterEncoding=utf8
+      PORTAL_DB_USER: root
+      PORTAL_DB_PWD: password
+      PORTAL_PORT: 28070
+
+      DEV_DB: jdbc:mysql://apollo-db:3306/ApolloConfigDBDev?characterEncoding=utf8
+      DEV_DB_USER: root
+      DEV_DB_PWD: password
+      # DEV_IP: 10.1.11.217
+      DEV_ADMIN_PORT: 28090
+      DEV_CONFIG_PORT: 28080
+
+      FAT_DB: jdbc:mysql://apollo-db:3306/ApolloConfigDBFat?characterEncoding=utf8
+      FAT_DB_USER: root
+      FAT_DB_PWD: password
+      # FAT_IP: 10.1.11.217
+      FAT_ADMIN_PORT: 28091
+      FAT_CONFIG_PORT: 28081
+
+      #UAT_DB: jdbc:mysql://apollo-db:3306/ApolloConfigDBUat?characterEncoding=utf8
+      UAT_DB_USER: root
+      UAT_DB_PWD: password
+      UAT_IP: localhost
+
+      #PRO_DB: jdbc:mysql://apollo-db:3306/ApolloConfigDBPro?characterEncoding=utf8
+      PRO_DB_USER: root
+      PRO_DB_PWD: password
+      PRO_IP: localhost
+    depends_on:
+      - apollo-db
+    links:
+      - apollo-db
+    ports:
+      - "28070:28070"
+      - "28090:28090"
+      - "28080:28080"
+      - "28081:28081"
+      - "28091:28091"
+
+  apollo-db:
+    image: mysql:5.7
+    container_name: apollo-db
+    environment:
+      TZ: Asia/Shanghai
+      MYSQL_ROOT_PASSWORD: password
+    depends_on:
+      - apollo-dbdata
+    ports:
+      - "23306:3306"
+    volumes:
+      - ./sql:/docker-entrypoint-initdb.d
+    volumes_from:
+      - apollo-dbdata
+
+  apollo-dbdata:
+    image: alpine:latest
+    container_name: apollo-dbdata
+    volumes:
+      - ./data:/var/lib/mysq
