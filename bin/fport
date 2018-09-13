@@ -1,0 +1,11 @@
+#!/bin/bash
+
+OS=`uname -s`
+
+if [ $OS = 'Darwin' ]
+then
+        lsof -n -i:$1 | grep LISTEN
+elif [ $OS = 'Linux' ]
+then
+        lsof -i :$1
+fi
